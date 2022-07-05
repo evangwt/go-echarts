@@ -6,37 +6,37 @@ import (
 	"github.com/go-echarts/go-echarts/v2/types"
 )
 
-// Pie represents a pie chart.
-type Pie struct {
+// Sunburst represents a sunburst chart.
+type Sunburst struct {
 	BaseConfiguration
 }
 
 // Type returns the chart type.
-func (Pie) Type() string { return types.ChartPie }
+func (Sunburst) Type() string { return types.ChartSunburst }
 
-// NewPie creates a new pie chart.
-func NewPie() *Pie {
-	c := &Pie{}
+// NewSunburst creates a new sunburst chart instance.
+func NewSunburst() *Sunburst {
+	c := &Sunburst{}
 	c.initBaseConfiguration()
 	c.Renderer = render.NewChartRender(c, c.Validate)
 	return c
 }
 
 // AddSeries adds new data sets.
-func (c *Pie) AddSeries(name string, data []opts.PieData, options ...SeriesOpts) *Pie {
-	series := SingleSeries{Name: name, Type: types.ChartPie, Data: data}
+func (c *Sunburst) AddSeries(name string, data []opts.SunBurstData, options ...SeriesOpts) *Sunburst {
+	series := SingleSeries{Name: name, Type: types.ChartSunburst, Data: data}
 	series.configureSeriesOpts(options...)
 	c.MultiSeries = append(c.MultiSeries, series)
 	return c
 }
 
 // SetGlobalOptions sets options for the Pie instance.
-func (c *Pie) SetGlobalOptions(options ...GlobalOpts) *Pie {
+func (c *Sunburst) SetGlobalOptions(options ...GlobalOpts) *Sunburst {
 	c.BaseConfiguration.setBaseGlobalOptions(options...)
 	return c
 }
 
 // Validate validates the given configuration.
-func (c *Pie) Validate() {
+func (c *Sunburst) Validate() {
 	c.Assets.Validate(c.AssetsHost)
 }

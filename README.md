@@ -20,14 +20,14 @@
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="MIT License">
     </a>
-        <a href="https://pkg.go.dev/github.com/go-echarts/go-echarts/v2">
+    <a href="https://pkg.go.dev/github.com/go-echarts/go-echarts/v2">
         <img src="https://godoc.org/github.com/go-echarts/go-echarts?status.svg" alt="GoDoc">
     </a>
 </p>
 
 > If a language can be used to build web scrapers, it definitely needs to provide a graceful data visualization library. --- by dongdong.
 
-In the Golang ecosystem, there are not many choices for data visualization libraries. The development of [go-echarts](https://github.com/go-echarts/go-echarts) aims to provide a simple yet powerful data visualization library for Golang. [Echarts](https://echarts.apache.org/) is an outstanding charting and visualization library opensourced by Baidu, it supports adorable chart types and various interactive features. There are many language bindings for Echarts, for example, [pyecharts](https://github.com/pyecharts/pyecharts). go-echarts learns from pyecharts and has evolved a lot.
+In the Golang ecosystem, there are not many choices for data visualization libraries. The development of [go-echarts](https://github.com/go-echarts/go-echarts) aims to provide a simple yet powerful data visualization library for Golang. [Apache ECharts](https://echarts.apache.org/) is an outstanding charting and visualization library, it supports adorable chart types and various interactive features. There are many language bindings for Echarts, for example, [pyecharts](https://github.com/pyecharts/pyecharts). go-echarts learns from pyecharts and has evolved a lot.
 
 [中文 README](README_CN.md)
 
@@ -36,11 +36,11 @@ In the Golang ecosystem, there are not many choices for data visualization libra
 Classic way to get go-echarts
 
 ```shell
-$ go get -u github.com/go-echarts/go-echarts/...
-
 # this may be a stupid way to use v2 go-echarts without gomod(GO111MODULE=off) because of
-# the gomod version management system... 🐶
+# the next generation version management system... 🐶
 # if you get a better workaround, please let me know....
+
+$ go get -u github.com/go-echarts/go-echarts/...
 $ cd $go-echarts-project
 $ mkdir v2 && mv charts components datasets opts render templates types v2
 ```
@@ -48,6 +48,14 @@ $ mkdir v2 && mv charts components datasets opts render templates types v2
 Use gomod style
 
 ```shell
+$ go get -u github.com/go-echarts/go-echarts/v2/...
+```
+
+OR
+
+```shell
+# go.mod
+
 require github.com/go-echarts/go-echarts/v2
 ```
 
@@ -55,7 +63,7 @@ require github.com/go-echarts/go-echarts/v2
 
 The go-echarts project is being developed under v2 version and the active codebase is on the master branch now.
 
-v1 and v2 are incompatible which means that you cannot upgrade go-echarts from v1 to v2 smoothly. But I think it is worth trying the new version.
+v1 and v2 are incompatible which means that you cannot upgrade go-echarts from v1 to v2 smoothly. But I think it is worth trying that new version.
 
 ### ✨ Features
 

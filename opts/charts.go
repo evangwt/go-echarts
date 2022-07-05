@@ -3,6 +3,7 @@ package opts
 // BarChart
 // https://echarts.apache.org/en/option.html#series-bar
 type BarChart struct {
+	Type string
 	// Name of stack. On the same category axis, the series with the
 	// same stack name would be put on top of each other.
 	Stack string
@@ -28,6 +29,39 @@ type BarChart struct {
 
 	// Index of y axis to combine with, which is useful for multiple y axes in one chart.
 	YAxisIndex int
+
+	ShowBackground bool
+	RoundCap       bool
+	CoordSystem    string
+}
+
+// SunburstChart
+// https://echarts.apache.org/en/option.html#series-sunburst
+type SunburstChart struct {
+	// The action of clicking a sector
+	NodeClick string `json:"nodeClick,omitempty"`
+	// Sorting method that sectors use based on value
+	Sort string `json:"sort,omitempty"`
+	// If there is no name, whether need to render it.
+	RenderLabelForZeroData bool `json:"renderLabelForZeroData"`
+	// Selected mode
+	SelectedMode bool `json:"selectedMode"`
+	// Whether to enable animation.
+	Animation bool `json:"animation"`
+	// Whether to set graphic number threshold to animation
+	AnimationThreshold int `json:"animationThreshold,omitempty"`
+	// Duration of the first animation
+	AnimationDuration int `json:"animationDuration,omitempty"`
+	// Easing method used for the first animation
+	AnimationEasing string `json:"animationEasing,omitempty"`
+	// Delay before updating the first animation
+	AnimationDelay int `json:"animationDelay,omitempty"`
+	// Time for animation to complete
+	AnimationDurationUpdate int `json:"animationDurationUpdate,omitempty"`
+	// Easing method used for animation.
+	AnimationEasingUpdate string `json:"animationEasingUpdate,omitempty"`
+	// Delay before updating animation
+	AnimationDelayUpdate int `json:"animationDelayUpdate,omitempty"`
 }
 
 // BarData
@@ -143,6 +177,20 @@ type GraphChart struct {
 	// Otherwise, set it to be true to enable both.
 	Roam bool
 
+	// EdgeSymbol is the symbols of two ends of edge line.
+	// * 'circle'
+	// * 'arrow'
+	// * 'none'
+	// example: ["circle", "arrow"] or "circle"
+	EdgeSymbol interface{}
+
+	// EdgeSymbolSize is size of symbol of two ends of edge line. Can be an array or a single number
+	// example: [5,10] or 5
+	EdgeSymbolSize interface{}
+
+	// Draggable allows you to move the nodes with the mouse if they are not fixed.
+	Draggable bool
+
 	// Whether to focus/highlight the hover node and it's adjacencies.
 	FocusNodeAdjacency bool
 
@@ -150,6 +198,9 @@ type GraphChart struct {
 	// the category of each node can be assigned through data[i].category.
 	// And the style of category will also be applied to the style of nodes. categories can also be used in legend.
 	Categories []*GraphCategory
+
+	// EdgeLabel is the properties of an label of edge.
+	EdgeLabel *EdgeLabel `json:"edgeLabel"`
 }
 
 // GraphNode represents a data node in graph chart.
@@ -171,7 +222,7 @@ type GraphNode struct {
 	Fixed bool `json:"fixed,omitempty"`
 
 	// Index of category which the data item belongs to.
-	Category int `json:"category,omitempty"`
+	Category interface{} `json:"category,omitempty"`
 
 	// Symbol of node of this category.
 	// Icon types provided by ECharts includes
@@ -198,6 +249,9 @@ type GraphLink struct {
 
 	// value of edge, can be mapped to edge length in force graph.
 	Value float32 `json:"value,omitempty"`
+
+	// Label for this link.
+	Label *EdgeLabel `json:"label,omitempty"`
 }
 
 // GraphCategory represents a category for data nodes.
@@ -257,7 +311,7 @@ type LineChart struct {
 
 	// Whether to show as a step line. It can be true, false. Or 'start', 'middle', 'end'.
 	// Which will configure the turn point of step line.
-	Step bool
+	Step interface{}
 
 	// Index of x axis to combine with, which is useful for multiple x axes in one chart.
 	XAxisIndex int
@@ -267,6 +321,9 @@ type LineChart struct {
 
 	// Whether to connect the line across null points.
 	ConnectNulls bool
+
+	// Whether to show symbol. It would be shown during tooltip hover.
+	ShowSymbol bool
 }
 
 // LineData
@@ -420,6 +477,12 @@ type SankeyNode struct {
 
 	// Value of a single data item.
 	Value string `json:"value,omitempty"`
+
+	// Depth of the node within the chart
+	Depth *int `json:"depth,omitempty"`
+
+	// ItemStyle settings in this series data.
+	ItemStyle *ItemStyle `json:"itemStyle,omitempty"`
 }
 
 // ScatterChart is the option set for a scatter chart.
@@ -510,4 +573,126 @@ type Chart3DData struct {
 
 	// The style setting of the text label in a single bar.
 	Label *Label `json:"label,omitempty"`
+}
+
+type TreeChart struct {
+	// The layout of the tree, which can be orthogonal and radial.
+	// * 'orthogonal' refer to the horizontal and vertical direction.
+	// * 'radial' refers to the view that the root node as the center and each layer of nodes as the ring.
+	Layout string
+
+	// The direction of the orthogonal layout in the tree diagram.
+	// * 'from left to right' or 'LR'
+	// * 'from right to left' or 'RL'
+	// * 'from top to bottom' or 'TB'
+	// * 'from bottom to top' or 'BT'
+	Orient string `json:"orient,omitempty"`
+
+	// Whether to enable mouse zooming and translating. false by default.
+	// If either zooming or translating is wanted, it can be set to 'scale' or 'move'.
+	// Otherwise, set it to be true to enable both.
+	Roam bool `json:"roam"`
+
+	// Subtree collapses and expands interaction, default true.
+	ExpandAndCollapse bool `json:"expandAndCollapse,omitempty"`
+
+	// The initial level (depth) of the tree. The root node is the 0th layer, then the first layer, the second layer, ... , until the leaf node.
+	// This configuration item is primarily used in conjunction with collapsing and expansion interactions.
+	// The purpose is to prevent the nodes from obscuring each other. If set as -1 or null or undefined, all nodes are expanded.
+	InitialTreeDepth int `json:"initialTreeDepth,omitempty"`
+
+	// The style setting of the text label in a single bar.
+	Label *Label `json:"label,omitempty"`
+
+	// Leaf node special configuration, the leaf node and non-leaf node label location is different.
+	Leaves *TreeLeaves `json:"leaves,omitempty"`
+
+	// Distance between tree component and the sides of the container.
+	// value can be instant pixel value like 20;
+	// It can also be a percentage value relative to container width like '20%';
+	Left   string `json:"left,omitempty"`
+	Right  string `json:"right,omitempty"`
+	Top    string `json:"top,omitempty"`
+	Bottom string `json:"bottom,omitempty"`
+}
+
+type TreeData struct {
+	// Name of the data item.
+	Name string `json:"name,omitempty"`
+
+	// Value of the data item.
+	Value int `json:"value,omitempty"`
+
+	Children []*TreeData `json:"children,omitempty"`
+
+	// Symbol of node of this category.
+	// Icon types provided by ECharts includes
+	// 'circle', 'rect', 'roundRect', 'triangle', 'diamond', 'pin', 'arrow', 'none'
+	// It can be set to an image with 'image://url' , in which URL is the link to an image, or dataURI of an image.
+	Symbol string `json:"symbol,omitempty"`
+
+	// node of this category symbol size. It can be set to single numbers like 10,
+	// or use an array to represent width and height. For example, [20, 10] means symbol width is 20, and height is10.
+	SymbolSize interface{} `json:"symbolSize,omitempty"`
+
+	// If set as `true`, the node is collapsed in the initialization.
+	Collapsed bool `json:"collapsed,omitempty"`
+
+	// LineStyle settings in this series data.
+	LineStyle *LineStyle `json:"lineStyle,omitempty"`
+
+	// ItemStyle settings in this series data.
+	ItemStyle *ItemStyle `json:"itemStyle,omitempty"`
+}
+
+type TreeMapChart struct {
+	// Whether to enable animation.
+	Animation bool `json:"animation"`
+
+	// leafDepth represents how many levels are shown at most. For example, when leafDepth is set to 1, only one level will be shown.
+	// leafDepth is null/undefined by default, which means that "drill down" is disabled.
+	LeafDepth int `json:"leafDeapth,omitempty"`
+
+	// Roam describes whether to enable mouse zooming and translating. false by default.
+	Roam bool `json:"roam"`
+
+	// Label decribes the style of the label in each node.
+	Label *Label `json:"label,omitempty"`
+
+	// UpperLabel is used to specify whether show label when the treemap node has children.
+	UpperLabel *UpperLabel `json:"upperLabel,omitempty"`
+
+	// ColorMappingBy specifies the rule according to which each node obtain color from color list.
+	ColorMappingBy string `json:"colorMappingBy,omitempty"`
+
+	// Levels provide configration for each node level
+	Levels *[]TreeMapLevel `json:"levels,omitempty"`
+
+	// Distance between treemap component and the sides of the container.
+	// value can be instant pixel value like 20;
+	// It can also be a percentage value relative to container width like '20%';
+	Left   string `json:"left,omitempty"`
+	Right  string `json:"right,omitempty"`
+	Top    string `json:"top,omitempty"`
+	Bottom string `json:"bottom,omitempty"`
+}
+
+type TreeMapNode struct {
+	// Name of the tree node item.
+	Name string `json:"name"`
+
+	// Value of the tree node item.
+	Value int `json:"value,omitempty"`
+
+	Children []TreeMapNode `json:"children,omitempty"`
+}
+
+// SunBurstData data
+type SunBurstData struct {
+	// Name of data item.
+	Name string `json:"name,omitempty"`
+	// Value of data item.
+	Value float64 `json:"value,omitempty"`
+	// sub item of data item
+	Children []*SunBurstData `json:"children,omitempty"`
 }

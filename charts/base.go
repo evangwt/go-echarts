@@ -1,6 +1,10 @@
 package charts
 
 import (
+	"bytes"
+	"encoding/json"
+	"html/template"
+
 	"github.com/go-echarts/go-echarts/v2/datasets"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/go-echarts/go-echarts/v2/render"
@@ -11,10 +15,13 @@ type GlobalOpts func(bc *BaseConfiguration)
 
 // BaseConfiguration represents an option set needed by all chart types.
 type BaseConfiguration struct {
-	opts.Legend  `json:"legend"`
-	opts.Tooltip `json:"tooltip"`
-	opts.Toolbox `json:"toolbox"`
-	opts.Title   `json:"title"`
+	opts.Legend     `json:"legend"`
+	opts.Tooltip    `json:"tooltip"`
+	opts.Toolbox    `json:"toolbox"`
+	opts.Title      `json:"title"`
+	opts.Polar      `json:"polar"`
+	opts.AngleAxis  `json:"angleAxis"`
+	opts.RadiusAxis `json:"radiusAxis"`
 
 	render.Renderer        `json:"-"`
 	opts.Initialization    `json:"-"`
@@ -52,6 +59,9 @@ type BaseConfiguration struct {
 	hasRadar      bool
 	hasParallel   bool
 	hasSingleAxis bool
+	hasPolar      bool
+
+	GridList []opts.Grid `json:"grid,omitempty"`
 }
 
 // JSON wraps all the options to a map so that it could be used in the base template
@@ -59,11 +69,32 @@ type BaseConfiguration struct {
 // Get data in bytes
 // bs, _ : = json.Marshal(bar.JSON())
 func (bc *BaseConfiguration) JSON() map[string]interface{} {
+	return bc.json()
+}
+
+// JSONNotEscaped works like method JSON, but it returns a marshaled object whose characters will not be escaped in the template
+func (bc *BaseConfiguration) JSONNotEscaped() template.HTML {
+	obj := bc.json()
+	buff := bytes.NewBufferString("")
+	enc := json.NewEncoder(buff)
+	enc.SetEscapeHTML(false)
+	enc.Encode(obj)
+
+	return template.HTML(buff.String())
+}
+
+func (bc *BaseConfiguration) json() map[string]interface{} {
 	obj := map[string]interface{}{
 		"title":   bc.Title,
 		"legend":  bc.Legend,
 		"tooltip": bc.Tooltip,
 		"series":  bc.MultiSeries,
+	}
+
+	if bc.hasPolar {
+		obj["polar"] = bc.Polar
+		obj["angleAxis"] = bc.AngleAxis
+		obj["radiusAxis"] = bc.RadiusAxis
 	}
 
 	if bc.hasGeo {
@@ -115,10 +146,14 @@ func (bc *BaseConfiguration) JSON() map[string]interface{} {
 		obj["backgroundColor"] = bc.BackgroundColor
 	}
 
+	if len(bc.GridList) > 0 {
+		obj["grid"] = bc.GridList
+	}
+
 	return obj
 }
 
-// GetAssets returns the Assets options
+// GetAssets returns the Assets options.
 func (bc *BaseConfiguration) GetAssets() opts.Assets {
 	return bc.Assets
 }
@@ -132,8 +167,8 @@ func (bc *BaseConfiguration) initBaseConfiguration() {
 
 func (bc *BaseConfiguration) initSeriesColors() {
 	bc.Colors = []string{
-		"#c23531", "#2f4554", "#61a0a8", "#d48265", "#91c7ae",
-		"#749f83", "#ca8622", "#bda29a", "#6e7074", "#546570",
+		"#5470c6", "#91cc75", "#fac858", "#ee6666", "#73c0de",
+		"#3ba272", "#fc8452", "#9a60b4", "#ea7ccc",
 	}
 }
 
@@ -152,74 +187,97 @@ func (bc *BaseConfiguration) setBaseGlobalOptions(opts ...GlobalOpts) {
 	}
 }
 
-// WithTitleOpts
+// WithAngleAxisOps sets the angle of the axis.
+func WithAngleAxisOps(opt opts.AngleAxis) GlobalOpts {
+	return func(bc *BaseConfiguration) {
+		bc.AngleAxis = opt
+	}
+}
+
+// WithRadiusAxisOps sets the radius of the axis.
+func WithRadiusAxisOps(opt opts.RadiusAxis) GlobalOpts {
+	return func(bc *BaseConfiguration) {
+		bc.RadiusAxis = opt
+	}
+}
+
+// WithPolarOps sets the polar.
+func WithPolarOps(opt opts.Polar) GlobalOpts {
+	return func(bc *BaseConfiguration) {
+		bc.Polar = opt
+	}
+}
+
+// WithTitleOpts sets the title.
 func WithTitleOpts(opt opts.Title) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.Title = opt
 	}
 }
 
-// WithToolboxOpts
+// WithToolboxOpts sets the toolbox.
 func WithToolboxOpts(opt opts.Toolbox) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.Toolbox = opt
 	}
 }
 
-// WithSingleAxisOpts
+// WithSingleAxisOpts sets the single axis.
 func WithSingleAxisOpts(opt opts.SingleAxis) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.SingleAxis = opt
 	}
 }
 
-// WithTooltipOpts
+// WithTooltipOpts sets the tooltip.
 func WithTooltipOpts(opt opts.Tooltip) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.Tooltip = opt
 	}
 }
 
-// WithLegendOpts
+// WithLegendOpts sets the legend.
 func WithLegendOpts(opt opts.Legend) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.Legend = opt
 	}
 }
 
-// WithInitializationOpts
+// WithInitializationOpts sets the initialization.
 func WithInitializationOpts(opt opts.Initialization) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.Initialization = opt
-		if bc.Initialization.Theme != "" {
+		if bc.Initialization.Theme != "" &&
+			bc.Initialization.Theme != "white" &&
+			bc.Initialization.Theme != "dark" {
 			bc.JSAssets.Add("themes/" + opt.Theme + ".js")
 		}
 		bc.Initialization.Validate()
 	}
 }
 
-// WithDataZoomOpts
+// WithDataZoomOpts sets the list of the zoom data.
 func WithDataZoomOpts(opt ...opts.DataZoom) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.DataZoomList = append(bc.DataZoomList, opt...)
 	}
 }
 
-// WithVisualMapOpts
+// WithVisualMapOpts sets the List of the visual map.
 func WithVisualMapOpts(opt ...opts.VisualMap) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.VisualMapList = append(bc.VisualMapList, opt...)
 	}
 }
 
-// WithRadarComponentOpts
+// WithRadarComponentOpts sets the component of the radar.
 func WithRadarComponentOpts(opt opts.RadarComponent) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.RadarComponent = opt
 	}
 }
 
-// WithGeoComponentOpts
+// WithGeoComponentOpts sets the geo component.
 func WithGeoComponentOpts(opt opts.GeoComponent) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.GeoComponent = opt
@@ -228,31 +286,38 @@ func WithGeoComponentOpts(opt opts.GeoComponent) GlobalOpts {
 
 }
 
-// WithParallelComponentOpts
+// WithParallelComponentOpts sets the parallel component.
 func WithParallelComponentOpts(opt opts.ParallelComponent) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.ParallelComponent = opt
 	}
 }
 
-// WithParallelAxisList
+// WithParallelAxisList sets the list of the parallel axis.
 func WithParallelAxisList(opt []opts.ParallelAxis) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.ParallelAxisList = opt
 	}
 }
 
-// WithColorsOpts
+// WithColorsOpts sets the color.
 func WithColorsOpts(opt opts.Colors) GlobalOpts {
 	return func(bc *BaseConfiguration) {
 		bc.insertSeriesColors(opt)
 	}
 }
 
-// reverseSlice reverse string slice
+// reverseSlice reverses the string slice.
 func reverseSlice(s []string) []string {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
 	return s
+}
+
+// WithGridOpts sets the List of the grid.
+func WithGridOpts(opt ...opts.Grid) GlobalOpts {
+	return func(bc *BaseConfiguration) {
+		bc.GridList = append(bc.GridList, opt...)
+	}
 }
